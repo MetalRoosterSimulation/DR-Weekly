@@ -17,11 +17,11 @@ app = Flask(__name__)
 # the exact column headers in your spreadsheet
 # ─────────────────────────────────────────────
 COLUMN_CONFIG = {
-    "Primary Partner Account":      "Partner",        # column header for partner name
-    "Top Grouping":     "Customer",       # column header for customer name
-    "Total ACV New":  "Sales Price",    # column header for sales price
-    "DR Core Products":   "Products",# column header for estimated close date
-    "Close Date": "Close Date",   # column header for created date (used for filtering)
+    "partner":      "Primary Partner Account",
+    "customer":     "Opportunity Name",
+    "sales_price":  "Total ACV (converted)",
+    "close_date":   "Close Date",
+    "created_date": "Created Date",
 }
 
 @app.route("/")
