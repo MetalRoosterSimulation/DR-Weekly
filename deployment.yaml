@@ -21,6 +21,8 @@ spec:
       labels:
         app: sales-report-app
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: sales-report-app
           image: ghcr.io/metalroostersimulation/dr-weekly:latest
