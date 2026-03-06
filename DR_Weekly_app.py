@@ -40,7 +40,7 @@ def process():
 
         # Read .xls or .xlsx
         filename = file.filename.lower()
-         if filename.endswith(".xls"):
+        if filename.endswith(".xls"):
             try:
                 df = pd.read_excel(file, engine="xlrd")
             except Exception:
