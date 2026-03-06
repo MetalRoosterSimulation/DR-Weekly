@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sales Report Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:       #0d1117;
+      --surface:  #161b22;
+      --border:   #30363d;
+      --accent:   #00d4ff;
+      --accent2:  #ff6b6b;
+      --text:     #e6edf3;
+      --muted:    #8b949e;
+      --success:  #3fb950;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    header {
+      max-width: 900px;
+      margin: 0 auto 2.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+    }
+
+    header h1 {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.6rem;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.875rem;
+      margin-top: 0.4rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      max-width: 900px;
+      margin: 0 auto 1.5rem;
+    }
+
+    .card h2 {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1.2rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 600px) {
+      .form-row { grid-template-columns: 1fr; }
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input[type="file"],
+    input[type="date"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 0.6rem 0.8rem;
+      font-size: 0.9rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="file"]:focus,
+    input[type="date"]:focus {
+      border-color: var(--accent);
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.6);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--accent);
+      color: #000;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.7rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      margin-top: 0.5rem;
+    }
+
+    .btn:hover  { opacity: 0.85; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .spinner {
+      display: none;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-box {
+      background: rgba(255,107,107,0.1);
+      border: 1px solid var(--accent2);
+      color: var(--accent2);
+      border-radius: 6px;
+      padding: 0.8rem 1rem;
+      font-size: 0.875rem;
+      margin-top: 1rem;
+      display: none;
+    }
+
+    /* Results */
+    #results { display: none; }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 700px) {
+      .results-grid { grid-template-columns: 1fr; }
+    }
+
+    .report-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.2rem;
+    }
+
+    .report-box h2 {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.7rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: 'Space Mono', monospace;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    pre#report-text {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      line-height: 1.7;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 480px;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    }
+
+    pre#report-text::-webkit-scrollbar { width: 4px; }
+    pre#report-text::-webkit-scrollbar-track { background: transparent; }
+    pre#report-text::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .chart-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.2rem;
+    }
+
+    .chart-box h2 {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.8rem;
+    }
+
+    #chart-img {
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(0,212,255,0.15);
+      color: var(--accent);
+      border: 1px solid rgba(0,212,255,0.3);
+      border-radius: 20px;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.7rem;
+      font-family: 'Space Mono', monospace;
+      margin-left: 0.5rem;
+    }
+
+    .config-note {
+      background: rgba(0,212,255,0.05);
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 6px;
+      padding: 0.8rem 1rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .config-note strong { color: var(--accent); }
+
+    .col-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+    }
+
+    .col-tag {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      padding: 0.2rem 0.5rem;
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>// Sales Report Generator</h1>
+    <p>Upload a spreadsheet, set a date range, get a report + chart.</p>
+  </header>
+
+  <div class="card">
+    <h2>Configuration</h2>
+    <div class="config-note">
+      <strong>Expected column names</strong> — these must match your spreadsheet exactly.
+      Edit <code>COLUMN_CONFIG</code> in <code>app.py</code> to change them.
+      <div class="col-tags">
+        <span class="col-tag">{{ config.partner }}</span>
+        <span class="col-tag">{{ config.customer }}</span>
+        <span class="col-tag">{{ config.sales_price }}</span>
+        <span class="col-tag">{{ config.close_date }}</span>
+        <span class="col-tag">{{ config.created_date }} ← filter column</span>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div>
+        <label>Spreadsheet (.xls / .xlsx / .csv)</label>
+        <input type="file" id="file-input" accept=".xls,.xlsx,.csv" />
+      </div>
+      <div></div>
+    </div>
+
+    <div class="form-row">
+      <div>
+        <label>Created Date — From</label>
+        <input type="date" id="start-date" />
+      </div>
+      <div>
+        <label>Created Date — To</label>
+        <input type="date" id="end-date" />
+      </div>
+    </div>
+
+    <button class="btn" id="run-btn" onclick="runReport()">
+      <span class="spinner" id="spinner"></span>
+      <span id="btn-label">Generate Report</span>
+    </button>
+
+    <div class="error-box" id="error-box"></div>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="results-grid">
+      <div class="report-box">
+        <h2>
+          Plain Text Report
+          <button class="copy-btn" onclick="copyReport()">copy</button>
+        </h2>
+        <pre id="report-text"></pre>
+      </div>
+      <div class="chart-box">
+        <h2>Sales by Partner</h2>
+        <img id="chart-img" src="" alt="Pie chart" />
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function runReport() {
+      const fileInput  = document.getElementById("file-input");
+      const startDate  = document.getElementById("start-date").value;
+      const endDate    = document.getElementById("end-date").value;
+      const btn        = document.getElementById("run-btn");
+      const spinner    = document.getElementById("spinner");
+      const btnLabel   = document.getElementById("btn-label");
+      const errorBox   = document.getElementById("error-box");
+      const results    = document.getElementById("results");
+
+      errorBox.style.display = "none";
+      results.style.display  = "none";
+
+      if (!fileInput.files.length) {
+        showError("Please select a spreadsheet file.");
+        return;
+      }
+
+      btn.disabled          = true;
+      spinner.style.display = "block";
+      btnLabel.textContent  = "Processing…";
+
+      const form = new FormData();
+      form.append("spreadsheet", fileInput.files[0]);
+      form.append("start_date", startDate);
+      form.append("end_date",   endDate);
+
+      try {
+        const res  = await fetch("/process", { method: "POST", body: form });
+        const data = await res.json();
+
+        if (data.error) {
+          showError(data.error);
+        } else {
+          document.getElementById("report-text").textContent = data.report;
+          document.getElementById("chart-img").src = "data:image/png;base64," + data.chart;
+          results.style.display = "block";
+          results.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      } catch (err) {
+        showError("Something went wrong: " + err.message);
+      } finally {
+        btn.disabled          = false;
+        spinner.style.display = "none";
+        btnLabel.textContent  = "Generate Report";
+      }
+    }
+
+    function showError(msg) {
+      const box = document.getElementById("error-box");
+      box.textContent    = "⚠ " + msg;
+      box.style.display  = "block";
+    }
+
+    function copyReport() {
+      const text = document.getElementById("report-text").textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector(".copy-btn");
+        btn.textContent = "copied!";
+        setTimeout(() => btn.textContent = "copy", 1500);
+      });
+    }
+  </script>
+</body>
+</html>

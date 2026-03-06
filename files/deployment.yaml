@@ -1,0 +1,50 @@
+# ─────────────────────────────────────────────────────────────────
+#  sales-report-app — K3s Deployment
+#
+#  Replace YOUR_GITHUB_USERNAME with your actual GitHub username
+#  before applying this file.
+# ─────────────────────────────────────────────────────────────────
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sales-report-app
+  labels:
+    app: sales-report-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sales-report-app
+  template:
+    metadata:
+      labels:
+        app: sales-report-app
+    spec:
+      containers:
+        - name: sales-report-app
+          image: ghcr.io/YOUR_GITHUB_USERNAME/sales-report-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5000
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sales-report-app
+spec:
+  selector:
+    app: sales-report-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+  type: NodePort
