@@ -43,9 +43,6 @@ def process():
         if filename.endswith(".xls"):
             try:
                 df = pd.read_excel(file, engine="xlrd")
-            except Exception:
-                file.seek(0)
-                df = pd.read_html(file, header=0)[0]
         elif filename.endswith(".xlsx"):
             df = pd.read_excel(file, engine="openpyxl")
         elif filename.endswith(".csv"):
