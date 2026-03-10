@@ -320,6 +320,9 @@
       </div>
     </div>
 
+    <button class="btn" id="sample-btn" onclick="loadSample()" style="background: var(--surface); color: var(--accent); border: 1px solid var(--accent); margin-right: 0.5rem;">
+      <span id="sample-label">Load Sample Data</span>
+    </button>
     <button class="btn" id="run-btn" onclick="runReport()">
       <span class="spinner" id="spinner"></span>
       <span id="btn-label">Generate Report</span>
@@ -391,6 +394,34 @@
         btn.disabled          = false;
         spinner.style.display = "none";
         btnLabel.textContent  = "Generate Report";
+      }
+    }
+
+    async function loadSample() {
+      const btn    = document.getElementById("sample-btn");
+      const label  = document.getElementById("sample-label");
+      const errorBox = document.getElementById("error-box");
+      errorBox.style.display = "none";
+      label.textContent = "Loading...";
+      btn.disabled = true;
+
+      try {
+        const res  = await fetch("/sample");
+        const data = await res.json();
+        if (data.error) {
+          showError(data.error);
+        } else {
+          document.getElementById("start-date").value = data.start_date;
+          document.getElementById("end-date").value   = data.end_date;
+          document.getElementById("report-text").textContent = data.report;
+          document.getElementById("chart-img").src = "data:image/png;base64," + data.chart;
+          document.getElementById("results").style.display = "block";
+        }
+      } catch (err) {
+        showError("Something went wrong: " + err.message);
+      } finally {
+        label.textContent = "Load Sample Data";
+        btn.disabled = false;
       }
     }
 

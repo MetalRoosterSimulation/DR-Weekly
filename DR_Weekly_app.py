@@ -179,5 +179,62 @@ def process():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/sample")
+def sample():
+    try:
+        sample_path = os.path.join(os.path.dirname(__file__), "sample_data.xls")
+        try:
+            df = pd.read_excel(sample_path)
+        except Exception:
+            df = pd.read_html(sample_path)[0]
+
+        start_date = df[COLUMN_CONFIG["created_date"]].min()
+        end_date   = df[COLUMN_CONFIG["created_date"]].max()
+
+        start_str = pd.to_datetime(start_date).strftime("%Y-%m-%d")
+        end_str   = pd.to_datetime(end_date).strftime("%Y-%m-%d")
+
+        partner_col     = COLUMN_CONFIG["partner"]
+        customer_col    = COLUMN_CONFIG["customer"]
+        sales_price_col = COLUMN_CONFIG["sales_price"]
+        close_date_col  = COLUMN_CONFIG["close_date"]
+
+        lines = []
+        for _, row in df.iterrows():
+            lines.append(
+                f"{row[partner_col]} | {row[customer_col]} | "
+                f"${row[sales_price_col]:,.0f} | {row[close_date_col]}"
+            )
+        report_text = "\n".join(lines)
+
+        summary = df.groupby(partner_col)[sales_price_col].sum()
+        colors  = plt.cm.Set2.colors
+        fig, ax = plt.subplots(figsize=(5, 5), facecolor="#0d1117")
+        ax.pie(summary.values, labels=None, colors=colors,
+               autopct="%1.0f%%", pctdistance=0.8,
+               wedgeprops=dict(width=0.6, edgecolor="#0d1117"))
+        patches = [mpatches.Patch(color=colors[i % len(colors)], label=l)
+                   for i, l in enumerate(summary.index)]
+        ax.legend(handles=patches, loc="lower center",
+                  bbox_to_anchor=(0.5, -0.15), ncol=2,
+                  fontsize=7, framealpha=0,
+                  labelcolor="#e6edf3")
+        ax.set_facecolor("#0d1117")
+        plt.tight_layout()
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png", bbox_inches="tight",
+                    facecolor="#0d1117", dpi=150)
+        plt.close(fig)
+        buf.seek(0)
+        chart_b64 = base64.b64encode(buf.read()).decode("utf-8")
+
+        return jsonify({
+            "report":     report_text,
+            "chart":      chart_b64,
+            "start_date": start_str,
+            "end_date":   end_str
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=False)
