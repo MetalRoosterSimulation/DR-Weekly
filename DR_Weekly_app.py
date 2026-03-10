@@ -41,8 +41,7 @@ def process():
         # Read .xls or .xlsx
         filename = file.filename.lower()
         if filename.endswith(".xls"):
-            try:
-                df = pd.read_excel(file, engine="xlrd")
+            df = pd.read_excel(file, engine="xlrd")
         elif filename.endswith(".xlsx"):
             df = pd.read_excel(file, engine="openpyxl")
         elif filename.endswith(".csv"):
